@@ -52,8 +52,8 @@ This matches the PostgreSQL findings in Portfolio 2: **equality fields first, th
 
 The Portfolio 2 SQL reports rewritten as pipelines ([`pipelines.js`](results/pipelines.js)):
 
-- **Daily volume per channel** (`$match` → `$group` on `$dateTrunc`): 180 groups in about 180 ms.
-- **Top 10 spenders** (`$unwind legs` → `$match` debits → `$group` by customer → `$sort`/`$limit` → `$lookup` customers): about 330 ms. Like the rewritten SQL Q5b, it **aggregates first and only looks up names for the final 10**.
+- **Daily volume per channel** (`$match` → `$group` on `$dateTrunc`): 180 groups in about 106 ms.
+- **Top 10 spenders** (`$unwind legs` → `$match` debits → `$group` by customer → `$sort`/`$limit` → `$lookup` customers): about 296 ms. Like the rewritten SQL Q5b, it **aggregates first and only looks up names for the final 10**.
 
 ## 4. Multi-document ACID transaction
 
@@ -81,7 +81,7 @@ This took **43 ms**. In SQL this needs a recursive CTE over `ledger_entry`. A de
 
 | Pattern | Keys / commands | Result |
 |---|---|---|
-| **Cache-aside** balance + stats | `GET`/`SET bal:<nuban> EX 30` | median **4.57 ms** from PostgreSQL (miss) vs **1.12 ms** from Redis (hit), over 500 accounts. Invalidate with `DEL` on each posting |
+| **Cache-aside** balance + stats | `GET`/`SET bal:<nuban> EX 30` | median **4.59 ms** from PostgreSQL (miss) vs **1.13 ms** from Redis (hit), over 500 accounts. Invalidate with `DEL` on each posting |
 | **Idempotency key** | `SET idem:<ref> PROCESSING NX EX 86400` | first request `True`, retried request `None` (rejected) |
 | **Velocity limit** (fraud rule: max 5 transfers/min) | sorted set `vel:<nuban>`: `ZREMRANGEBYSCORE` + `ZADD` + `ZCARD` in one pipeline | 8 rapid transfers → `[T, T, T, T, T, F, F, F]` |
 | **Real-time leaderboard** | `ZINCRBY top_receivers:2026-10 <amount> <nuban>` | top receiving accounts for October, updated per event |
