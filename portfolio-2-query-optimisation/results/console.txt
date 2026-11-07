@@ -1,0 +1,26 @@
+Parameters: account_id=4174, email=AISHA.OBI4242@MAIL.NG
+
+[1] Baseline (constraint indexes only)
+  before q1_statement                  318.59 ms   Parallel Seq Scan ledger_entry; Index Scan txn (txn_pkey)
+  before q2_login_lookup                41.88 ms   Seq Scan customer
+  before q3_failed_investigation       123.81 ms   Parallel Seq Scan txn
+  before q4_daily_channel_report       223.65 ms   Parallel Seq Scan txn
+  before q5_top_spenders               828.68 ms   Parallel Seq Scan ledger_entry; Seq Scan account; Seq Scan customer
+  before q5b_top_spenders_rewritten    349.76 ms   Seq Scan account; Parallel Seq Scan ledger_entry; Index Scan customer (customer_pkey)
+  before q6_dormant_not_in             245.23 ms   Seq Scan account; Seq Scan ledger_entry
+  before q6_dormant_not_exists         228.71 ms   Seq Scan ledger_entry; Seq Scan account
+  before q7_open_fraud_alerts            1.02 ms   Seq Scan fraud_alert; Index Only Scan ledger_entry (one_leg_per_side); Index Scan txn (txn_pkey)
+
+[2] Applying indexes.sql
+  built in 5.7s
+  after  q1_statement                    0.27 ms   Index Only Scan ledger_entry (ix_ledger_account_time); Index Scan txn (txn_pkey)
+  after  q2_login_lookup                 0.05 ms   Index Scan customer (ix_customer_lower_email)
+  after  q3_failed_investigation         0.21 ms   Index Scan txn (ix_txn_failed_recent)
+  after  q4_daily_channel_report        66.76 ms   Bitmap Heap Scan txn; Bitmap Index Scan brin_txn_created
+  after  q5_top_spenders               321.66 ms   Bitmap Heap Scan ledger_entry; Bitmap Index Scan brin_ledger_created; Seq Scan account
+  after  q5b_top_spenders_rewritten    135.30 ms   Seq Scan account; Bitmap Heap Scan ledger_entry; Bitmap Index Scan brin_ledger_created
+  after  q6_dormant_not_in              89.96 ms   Seq Scan account; Bitmap Heap Scan ledger_entry; Bitmap Index Scan brin_ledger_created
+  after  q6_dormant_not_exists          89.25 ms   Bitmap Heap Scan ledger_entry; Bitmap Index Scan brin_ledger_created; Seq Scan account
+  after  q7_open_fraud_alerts            0.22 ms   Bitmap Heap Scan fraud_alert; Bitmap Index Scan ix_fraud_open_risk; Index Only Scan ledger_entry (one_leg_per_side)
+
+Wrote C:\Users\Joshua\Desktop\.claude\advanced-database-portfolio\portfolio-2-query-optimisation\results\summary.md

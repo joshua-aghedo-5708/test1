@@ -1,0 +1,29 @@
+-- q1_statement (before) median of 7 runs: 318.59 ms
+-- runs: [600.321, 406.825, 318.592, 333.724, 285.391, 235.113, 213.318]
+
+Limit  (cost=21084.13..21307.05 rows=50 width=50) (actual rows=50 loops=1)
+  Buffers: shared hit=11554
+  ->  Nested Loop  (cost=21084.13..52841.23 rows=7123 width=50) (actual rows=50 loops=1)
+        Buffers: shared hit=11554
+        ->  Gather Merge  (cost=21083.71..21913.30 rows=7123 width=35) (actual rows=50 loops=1)
+              Workers Planned: 2
+              Workers Launched: 2
+              Buffers: shared hit=11354
+              ->  Sort  (cost=20083.69..20091.11 rows=2968 width=35) (actual rows=439 loops=3)
+                    Sort Key: l.created_at DESC
+                    Sort Method: quicksort  Memory: 271kB
+                    Buffers: shared hit=11354
+                    Worker 0:  Sort Method: quicksort  Memory: 118kB
+                    Worker 1:  Sort Method: quicksort  Memory: 277kB
+                    ->  Parallel Seq Scan on ledger_entry l  (cost=0.00..19912.50 rows=2968 width=35) (actual rows=2584 loops=3)
+                          Filter: ((created_at >= '2026-04-01 00:00:00+00'::timestamp with time zone) AND (created_at < '2026-10-01 00:00:00+00'::timestamp with time zone) AND (account_id = 4174))
+                          Rows Removed by Filter: 392044
+                          Buffers: shared hit=11280
+        ->  Index Scan using txn_pkey on txn t  (cost=0.42..4.34 rows=1 width=31) (actual rows=1 loops=50)
+              Index Cond: (txn_id = l.txn_id)
+              Buffers: shared hit=200
+Settings: work_mem = '16MB', search_path = 'bank, public'
+Planning:
+  Buffers: shared hit=17
+Planning Time: 0.808 ms
+Execution Time: 318.592 ms

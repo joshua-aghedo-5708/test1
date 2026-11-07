@@ -1,0 +1,26 @@
+-- q4_daily_channel_report (before) median of 7 runs: 223.65 ms
+-- runs: [270.517, 209.872, 223.649, 274.892, 227.533, 160.667, 130.139]
+
+Finalize GroupAggregate  (cost=16111.10..19736.84 rows=26528 width=49) (actual rows=180 loops=1)
+  Group Key: ((date_trunc('day'::text, created_at))::date), channel
+  Buffers: shared hit=9802
+  ->  Gather Merge  (cost=16111.10..18996.10 rows=22120 width=49) (actual rows=491 loops=1)
+        Workers Planned: 2
+        Workers Launched: 2
+        Buffers: shared hit=9802
+        ->  Partial GroupAggregate  (cost=15111.08..15442.88 rows=11060 width=49) (actual rows=164 loops=3)
+              Group Key: ((date_trunc('day'::text, created_at))::date), channel
+              Buffers: shared hit=9802
+              ->  Sort  (cost=15111.08..15138.73 rows=11060 width=17) (actual rows=8738 loops=3)
+                    Sort Key: ((date_trunc('day'::text, created_at))::date), channel
+                    Sort Method: quicksort  Memory: 759kB
+                    Buffers: shared hit=9802
+                    Worker 0:  Sort Method: quicksort  Memory: 458kB
+                    Worker 1:  Sort Method: quicksort  Memory: 738kB
+                    ->  Parallel Seq Scan on txn  (cost=0.00..14368.23 rows=11060 width=17) (actual rows=8738 loops=3)
+                          Filter: ((created_at >= '2026-09-01 00:00:00+00'::timestamp with time zone) AND (created_at < '2026-10-01 00:00:00+00'::timestamp with time zone) AND ((status)::text = 'COMPLETED'::text))
+                          Rows Removed by Filter: 201591
+                          Buffers: shared hit=9712
+Settings: work_mem = '16MB', search_path = 'bank, public'
+Planning Time: 0.324 ms
+Execution Time: 223.649 ms

@@ -1,0 +1,9 @@
+-- q2_login_lookup (after) median of 7 runs: 0.05 ms
+-- runs: [0.056, 0.06, 0.056, 0.04, 0.051, 0.054, 0.043]
+
+Index Scan using ix_customer_lower_email on customer  (cost=0.29..8.30 rows=1 width=25) (actual rows=1 loops=1)
+  Index Cond: (lower((email)::text) = 'aisha.obi4242@mail.ng'::text)
+  Buffers: shared hit=3
+Settings: work_mem = '16MB', search_path = 'bank, public'
+Planning Time: 0.127 ms
+Execution Time: 0.054 ms

@@ -1,0 +1,65 @@
+Limit  (cost=32304.11..32304.14 rows=10 width=87) (actual rows=10 loops=1)
+  Buffers: shared hit=2441
+  ->  Sort  (cost=32304.11..32506.08 rows=80788 width=87) (actual rows=10 loops=1)
+        Sort Key: (sum(l.amount)) DESC
+        Sort Method: top-N heapsort  Memory: 26kB
+        Buffers: shared hit=2441
+        ->  HashAggregate  (cost=29144.52..30558.31 rows=80788 width=87) (actual rows=14380 loops=1)
+              Group Key: c.customer_id, (((c.first_name)::text || ' '::text) || (c.last_name)::text), r.region_name
+              Batches: 1  Memory Usage: 9233kB
+              Buffers: shared hit=2441
+              ->  Merge Join  (cost=26371.48..28134.67 rows=80788 width=55) (actual rows=66479 loops=1)
+                    Merge Cond: (a.account_id = l.account_id)
+                    Buffers: shared hit=2441
+                    ->  Sort  (cost=5593.70..5667.40 rows=29481 width=31) (actual rows=29480 loops=1)
+                          Sort Key: a.account_id
+                          Sort Method: quicksort  Memory: 2271kB
+                          Buffers: shared hit=870
+                          ->  Merge Join  (cost=0.86..3405.11 rows=29481 width=31) (actual rows=29480 loops=1)
+                                Merge Cond: (c.customer_id = a.customer_id)
+                                Buffers: shared hit=870
+                                ->  Nested Loop  (cost=0.58..1868.07 rows=20000 width=27) (actual rows=20000 loops=1)
+                                      Buffers: shared hit=426
+                                      ->  Nested Loop  (cost=0.43..1398.98 rows=20000 width=19) (actual rows=20000 loops=1)
+                                            Buffers: shared hit=414
+                                            ->  Index Scan using customer_pkey on customer c  (cost=0.29..909.31 rows=20000 width=19) (actual rows=20000 loops=1)
+                                                  Filter: (customer_id <> 1)
+                                                  Rows Removed by Filter: 1
+                                                  Buffers: shared hit=374
+                                            ->  Memoize  (cost=0.15..0.17 rows=1 width=6) (actual rows=1 loops=20000)
+                                                  Cache Key: c.state_code
+                                                  Cache Mode: logical
+                                                  Hits: 19980  Misses: 20  Evictions: 0  Overflows: 0  Memory Usage: 3kB
+                                                  Buffers: shared hit=40
+                                                  ->  Index Scan using state_pkey on state s  (cost=0.14..0.16 rows=1 width=6) (actual rows=1 loops=20)
+                                                        Index Cond: (state_code = c.state_code)
+                                                        Buffers: shared hit=40
+                                      ->  Memoize  (cost=0.14..0.76 rows=1 width=14) (actual rows=1 loops=20000)
+                                            Cache Key: s.region_code
+                                            Cache Mode: logical
+                                            Hits: 19994  Misses: 6  Evictions: 0  Overflows: 0  Memory Usage: 1kB
+                                            Buffers: shared hit=12
+                                            ->  Index Scan using region_pkey on region r  (cost=0.13..0.75 rows=1 width=14) (actual rows=1 loops=6)
+                                                  Index Cond: ((region_code)::text = (s.region_code)::text)
+                                                  Buffers: shared hit=12
+                                ->  Index Scan using ix_account_customer on account a  (cost=0.29..1118.52 rows=29482 width=8) (actual rows=29482 loops=1)
+                                      Buffers: shared hit=444
+                    ->  Sort  (cost=20777.78..20979.76 rows=80792 width=12) (actual rows=79747 loops=1)
+                          Sort Key: l.account_id
+                          Sort Method: quicksort  Memory: 5565kB
+                          Buffers: shared hit=1571
+                          ->  Bitmap Heap Scan on ledger_entry l  (cost=36.59..14192.45 rows=80792 width=12) (actual rows=79747 loops=1)
+                                Recheck Cond: ((created_at >= '2026-07-01 00:00:00+00'::timestamp with time zone) AND (created_at < '2026-10-01 00:00:00+00'::timestamp with time zone))
+                                Rows Removed by Index Recheck: 5408
+                                Filter: (direction = 'D'::bpchar)
+                                Rows Removed by Filter: 79747
+                                Heap Blocks: lossy=1568
+                                Buffers: shared hit=1571
+                                ->  Bitmap Index Scan on brin_ledger_created  (cost=0.00..16.39 rows=164335 width=0) (actual rows=15680 loops=1)
+                                      Index Cond: ((created_at >= '2026-07-01 00:00:00+00'::timestamp with time zone) AND (created_at < '2026-10-01 00:00:00+00'::timestamp with time zone))
+                                      Buffers: shared hit=3
+Settings: work_mem = '16MB', search_path = 'bank, public', enable_hashjoin = 'off'
+Planning:
+  Buffers: shared hit=38
+Planning Time: 2.026 ms
+Execution Time: 354.555 ms

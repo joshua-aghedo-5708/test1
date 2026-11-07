@@ -1,0 +1,66 @@
+-- q5b_top_spenders_rewritten (before) median of 7 runs: 349.76 ms
+-- runs: [496.289, 346.164, 349.762, 412.549, 364.891, 336.76, 306.242]
+
+Nested Loop  (cost=26212.73..26298.94 rows=10 width=111) (actual rows=10 loops=1)
+  Join Filter: ((r.region_code)::text = (s.region_code)::text)
+  Rows Removed by Join Filter: 21
+  Buffers: shared hit=11700
+  ->  Nested Loop  (cost=26212.73..26297.04 rows=10 width=83) (actual rows=10 loops=1)
+        Buffers: shared hit=11699
+        ->  Nested Loop  (cost=26212.60..26295.49 rows=10 width=83) (actual rows=10 loops=1)
+              Buffers: shared hit=11679
+              ->  Limit  (cost=26212.31..26212.33 rows=10 width=68) (actual rows=10 loops=1)
+                    Buffers: shared hit=11649
+                    ->  Sort  (cost=26212.31..26246.27 rows=13586 width=68) (actual rows=10 loops=1)
+                          Sort Key: (sum(p.outflow)) DESC
+                          Sort Method: top-N heapsort  Memory: 26kB
+                          Buffers: shared hit=11649
+                          ->  HashAggregate  (cost=25714.93..25918.72 rows=13586 width=68) (actual rows=14380 loops=1)
+                                Group Key: a.customer_id
+                                Batches: 1  Memory Usage: 7953kB
+                                Buffers: shared hit=11649
+                                ->  Hash Join  (cost=24798.11..25613.04 rows=13586 width=44) (actual rows=18196 loops=1)
+                                      Hash Cond: (a.account_id = p.account_id)
+                                      Buffers: shared hit=11649
+                                      ->  Seq Scan on account a  (cost=0.00..737.53 rows=29481 width=8) (actual rows=29480 loops=1)
+                                            Filter: (customer_id <> 1)
+                                            Rows Removed by Filter: 2
+                                            Buffers: shared hit=369
+                                      ->  Hash  (cost=24628.29..24628.29 rows=13586 width=44) (actual rows=18197 loops=1)
+                                            Buckets: 32768 (originally 16384)  Batches: 1 (originally 1)  Memory Usage: 1296kB
+                                            Buffers: shared hit=11280
+                                            ->  Subquery Scan on p  (cost=24322.60..24628.29 rows=13586 width=44) (actual rows=18197 loops=1)
+                                                  Buffers: shared hit=11280
+                                                  ->  Finalize HashAggregate  (cost=24322.60..24492.43 rows=13586 width=44) (actual rows=18197 loops=1)
+                                                        Group Key: l.account_id
+                                                        Batches: 1  Memory Usage: 8977kB
+                                                        Buffers: shared hit=11280
+                                                        ->  Gather  (cost=21163.86..24050.88 rows=27172 width=44) (actual rows=28940 loops=1)
+                                                              Workers Planned: 2
+                                                              Workers Launched: 2
+                                                              Buffers: shared hit=11280
+                                                              ->  Partial HashAggregate  (cost=20163.86..20333.68 rows=13586 width=44) (actual rows=9647 loops=3)
+                                                                    Group Key: l.account_id
+                                                                    Batches: 1  Memory Usage: 4497kB
+                                                                    Buffers: shared hit=11280
+                                                                    Worker 0:  Batches: 1  Memory Usage: 4497kB
+                                                                    Worker 1:  Batches: 1  Memory Usage: 4497kB
+                                                                    ->  Parallel Seq Scan on ledger_entry l  (cost=0.00..19912.50 rows=33514 width=12) (actual rows=26582 loops=3)
+                                                                          Filter: ((created_at >= '2026-07-01 00:00:00+00'::timestamp with time zone) AND (created_at < '2026-10-01 00:00:00+00'::timestamp with time zone) AND (direction = 'D'::bpchar))
+                                                                          Rows Removed by Filter: 368046
+                                                                          Buffers: shared hit=11280
+              ->  Index Scan using customer_pkey on customer c  (cost=0.29..8.30 rows=1 width=19) (actual rows=1 loops=10)
+                    Index Cond: (customer_id = a.customer_id)
+                    Buffers: shared hit=30
+        ->  Index Scan using state_pkey on state s  (cost=0.14..0.16 rows=1 width=6) (actual rows=1 loops=10)
+              Index Cond: (state_code = c.state_code)
+              Buffers: shared hit=20
+  ->  Materialize  (cost=0.00..1.09 rows=6 width=14) (actual rows=3 loops=10)
+        Buffers: shared hit=1
+        ->  Seq Scan on region r  (cost=0.00..1.06 rows=6 width=14) (actual rows=6 loops=1)
+              Buffers: shared hit=1
+Settings: work_mem = '16MB', search_path = 'bank, public'
+Planning:
+  Buffers: shared hit=8
+Planning Time: 0.645 ms
+Execution Time: 349.762 ms

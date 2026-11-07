@@ -1,0 +1,10 @@
+-- q2_login_lookup (before) median of 7 runs: 41.88 ms
+-- runs: [49.514, 41.875, 47.756, 34.888, 36.31, 40.107, 52.324]
+
+Seq Scan on customer  (cost=0.00..628.01 rows=100 width=25) (actual rows=1 loops=1)
+  Filter: (lower((email)::text) = 'aisha.obi4242@mail.ng'::text)
+  Rows Removed by Filter: 20000
+  Buffers: shared hit=328
+Settings: work_mem = '16MB', search_path = 'bank, public'
+Planning Time: 0.131 ms
+Execution Time: 41.875 ms

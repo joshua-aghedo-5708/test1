@@ -1,0 +1,25 @@
+-- q4_daily_channel_report (after) median of 7 runs: 66.76 ms
+-- runs: [47.348, 42.97, 67.921, 63.209, 77.744, 77.053, 66.761]
+
+GroupAggregate  (cost=12108.81..12841.46 rows=24418 width=49) (actual rows=180 loops=1)
+  Group Key: ((date_trunc('day'::text, created_at))::date), channel
+  Buffers: shared hit=483
+  ->  Sort  (cost=12108.81..12169.88 rows=24427 width=17) (actual rows=26213 loops=1)
+        Sort Key: ((date_trunc('day'::text, created_at))::date), channel
+        Sort Method: quicksort  Memory: 1762kB
+        Buffers: shared hit=483
+        ->  Bitmap Heap Scan on txn  (cost=22.21..10328.55 rows=24427 width=17) (actual rows=26213 loops=1)
+              Recheck Cond: ((created_at >= '2026-09-01 00:00:00+00'::timestamp with time zone) AND (created_at < '2026-10-01 00:00:00+00'::timestamp with time zone))
+              Rows Removed by Index Recheck: 4154
+              Filter: ((status)::text = 'COMPLETED'::text)
+              Rows Removed by Filter: 1099
+              Heap Blocks: lossy=480
+              Buffers: shared hit=483
+              ->  Bitmap Index Scan on brin_txn_created  (cost=0.00..16.10 rows=26983 width=0) (actual rows=4800 loops=1)
+                    Index Cond: ((created_at >= '2026-09-01 00:00:00+00'::timestamp with time zone) AND (created_at < '2026-10-01 00:00:00+00'::timestamp with time zone))
+                    Buffers: shared hit=3
+Settings: work_mem = '16MB', search_path = 'bank, public'
+Planning:
+  Buffers: shared hit=1
+Planning Time: 0.268 ms
+Execution Time: 66.761 ms

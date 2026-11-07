@@ -1,0 +1,62 @@
+-- q5b_top_spenders_rewritten (after) median of 7 runs: 135.30 ms
+-- runs: [150.59, 135.299, 167.12, 130.377, 114.376, 113.46, 139.575]
+
+Nested Loop  (cost=16697.07..16783.27 rows=10 width=111) (actual rows=10 loops=1)
+  Join Filter: ((r.region_code)::text = (s.region_code)::text)
+  Rows Removed by Join Filter: 21
+  Buffers: shared hit=1991
+  ->  Nested Loop  (cost=16697.07..16781.38 rows=10 width=83) (actual rows=10 loops=1)
+        Buffers: shared hit=1990
+        ->  Nested Loop  (cost=16696.93..16779.82 rows=10 width=83) (actual rows=10 loops=1)
+              Buffers: shared hit=1970
+              ->  Limit  (cost=16696.64..16696.67 rows=10 width=68) (actual rows=10 loops=1)
+                    Buffers: shared hit=1940
+                    ->  Sort  (cost=16696.64..16730.88 rows=13694 width=68) (actual rows=10 loops=1)
+                          Sort Key: (sum(p.outflow)) DESC
+                          Sort Method: top-N heapsort  Memory: 26kB
+                          Buffers: shared hit=1940
+                          ->  HashAggregate  (cost=16195.31..16400.72 rows=13694 width=68) (actual rows=14380 loops=1)
+                                Group Key: a.customer_id
+                                Batches: 1  Memory Usage: 7953kB
+                                Buffers: shared hit=1940
+                                ->  Hash Join  (cost=15277.68..16092.61 rows=13694 width=44) (actual rows=18196 loops=1)
+                                      Hash Cond: (a.account_id = p.account_id)
+                                      Buffers: shared hit=1940
+                                      ->  Seq Scan on account a  (cost=0.00..737.53 rows=29481 width=8) (actual rows=29480 loops=1)
+                                            Filter: (customer_id <> 1)
+                                            Rows Removed by Filter: 2
+                                            Buffers: shared hit=369
+                                      ->  Hash  (cost=15106.51..15106.51 rows=13694 width=44) (actual rows=18197 loops=1)
+                                            Buckets: 32768 (originally 16384)  Batches: 1 (originally 1)  Memory Usage: 1296kB
+                                            Buffers: shared hit=1571
+                                            ->  Subquery Scan on p  (cost=14798.39..15106.51 rows=13694 width=44) (actual rows=18197 loops=1)
+                                                  Buffers: shared hit=1571
+                                                  ->  HashAggregate  (cost=14798.39..14969.57 rows=13694 width=44) (actual rows=18197 loops=1)
+                                                        Group Key: l.account_id
+                                                        Batches: 1  Memory Usage: 7953kB
+                                                        Buffers: shared hit=1571
+                                                        ->  Bitmap Heap Scan on ledger_entry l  (cost=36.59..14192.45 rows=80792 width=12) (actual rows=79747 loops=1)
+                                                              Recheck Cond: ((created_at >= '2026-07-01 00:00:00+00'::timestamp with time zone) AND (created_at < '2026-10-01 00:00:00+00'::timestamp with time zone))
+                                                              Rows Removed by Index Recheck: 5408
+                                                              Filter: (direction = 'D'::bpchar)
+                                                              Rows Removed by Filter: 79747
+                                                              Heap Blocks: lossy=1568
+                                                              Buffers: shared hit=1571
+                                                              ->  Bitmap Index Scan on brin_ledger_created  (cost=0.00..16.39 rows=164335 width=0) (actual rows=15680 loops=1)
+                                                                    Index Cond: ((created_at >= '2026-07-01 00:00:00+00'::timestamp with time zone) AND (created_at < '2026-10-01 00:00:00+00'::timestamp with time zone))
+                                                                    Buffers: shared hit=3
+              ->  Index Scan using customer_pkey on customer c  (cost=0.29..8.30 rows=1 width=19) (actual rows=1 loops=10)
+                    Index Cond: (customer_id = a.customer_id)
+                    Buffers: shared hit=30
+        ->  Index Scan using state_pkey on state s  (cost=0.14..0.16 rows=1 width=6) (actual rows=1 loops=10)
+              Index Cond: (state_code = c.state_code)
+              Buffers: shared hit=20
+  ->  Materialize  (cost=0.00..1.09 rows=6 width=14) (actual rows=3 loops=10)
+        Buffers: shared hit=1
+        ->  Seq Scan on region r  (cost=0.00..1.06 rows=6 width=14) (actual rows=6 loops=1)
+              Buffers: shared hit=1
+Settings: work_mem = '16MB', search_path = 'bank, public'
+Planning:
+  Buffers: shared hit=9
+Planning Time: 0.577 ms
+Execution Time: 135.299 ms

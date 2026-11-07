@@ -1,0 +1,40 @@
+-- q7_open_fraud_alerts (before) median of 7 runs: 1.02 ms
+-- runs: [1.749, 1.045, 1.025, 0.975, 1.025, 0.975, 0.982]
+
+Limit  (cost=178.32..178.33 rows=4 width=89) (actual rows=4 loops=1)
+  Buffers: shared hit=114
+  ->  Sort  (cost=178.32..178.33 rows=4 width=89) (actual rows=4 loops=1)
+        Sort Key: f.risk_score DESC, t.created_at DESC
+        Sort Method: quicksort  Memory: 25kB
+        Buffers: shared hit=114
+        ->  Nested Loop  (cost=1.43..178.28 rows=4 width=89) (actual rows=4 loops=1)
+              Buffers: shared hit=114
+              ->  Nested Loop  (cost=1.14..176.83 rows=4 width=61) (actual rows=4 loops=1)
+                    Buffers: shared hit=102
+                    ->  Nested Loop  (cost=0.85..175.60 rows=4 width=50) (actual rows=4 loops=1)
+                          Join Filter: (t.txn_id = f.txn_id)
+                          Buffers: shared hit=90
+                          ->  Nested Loop  (cost=0.43..173.47 rows=4 width=45) (actual rows=4 loops=1)
+                                Buffers: shared hit=74
+                                ->  Seq Scan on fraud_alert f  (cost=0.00..151.60 rows=4 width=33) (actual rows=4 loops=1)
+                                      Filter: ((risk_score >= '60'::numeric) AND ((status)::text = 'OPEN'::text))
+                                      Rows Removed by Filter: 6036
+                                      Buffers: shared hit=61
+                                ->  Index Only Scan using one_leg_per_side on ledger_entry l  (cost=0.43..5.46 rows=1 width=12) (actual rows=1 loops=4)
+                                      Index Cond: ((txn_id = f.txn_id) AND (direction = 'D'::bpchar))
+                                      Heap Fetches: 0
+                                      Buffers: shared hit=13
+                          ->  Index Scan using txn_pkey on txn t  (cost=0.42..0.52 rows=1 width=29) (actual rows=1 loops=4)
+                                Index Cond: (txn_id = l.txn_id)
+                                Buffers: shared hit=16
+                    ->  Index Scan using account_pkey on account a  (cost=0.29..0.31 rows=1 width=19) (actual rows=1 loops=4)
+                          Index Cond: (account_id = l.account_id)
+                          Buffers: shared hit=12
+              ->  Index Scan using customer_pkey on customer c  (cost=0.29..0.36 rows=1 width=16) (actual rows=1 loops=4)
+                    Index Cond: (customer_id = a.customer_id)
+                    Buffers: shared hit=12
+Settings: work_mem = '16MB', search_path = 'bank, public'
+Planning:
+  Buffers: shared hit=39
+Planning Time: 0.931 ms
+Execution Time: 1.025 ms
