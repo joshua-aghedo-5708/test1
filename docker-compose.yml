@@ -1,0 +1,31 @@
+# Main lab stack for the NairaFlow portfolio (Portfolios 1-4).
+# Portfolio 5 has its own compose file for the replicated / distributed setup.
+services:
+  postgres:
+    image: postgres:17
+    container_name: nf-postgres
+    environment:
+      POSTGRES_USER: nairaflow
+      POSTGRES_PASSWORD: nairaflow_dev   # local lab password only
+      POSTGRES_DB: nairaflow
+    ports: ["5433:5432"]
+    command: >
+      postgres -c shared_buffers=256MB -c work_mem=16MB
+               -c track_io_timing=on -c log_lock_waits=on -c deadlock_timeout=1s
+    volumes: [pgdata:/var/lib/postgresql/data]
+
+  mongo:
+    image: mongo:7
+    container_name: nf-mongo
+    command: ["--replSet", "rs0", "--bind_ip_all"]   # single-node replica set so multi-document transactions work
+    ports: ["27018:27017"]
+    volumes: [mongodata:/data/db]
+
+  redis:
+    image: redis:7
+    container_name: nf-redis
+    ports: ["6380:6379"]
+
+volumes:
+  pgdata:
+  mongodata:

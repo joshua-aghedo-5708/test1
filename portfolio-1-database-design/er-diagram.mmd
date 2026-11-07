@@ -1,0 +1,96 @@
+erDiagram
+    REGION ||--|{ STATE : contains
+    STATE ||--o{ BRANCH : hosts
+    STATE ||--o{ CUSTOMER : "resides in"
+    BRANCH ||--o{ CUSTOMER : "home branch of"
+    KYC_TIER ||--o{ CUSTOMER : "limits"
+    CUSTOMER ||--|{ ACCOUNT : owns
+    CUSTOMER ||--o{ BENEFICIARY : saves
+    BANK ||--o{ BENEFICIARY : "holds account of"
+    TXN ||--|{ LEDGER_ENTRY : "posted as (2 legs)"
+    ACCOUNT ||--o{ LEDGER_ENTRY : "debited / credited by"
+    TXN |o--o| TXN : "reversed by"
+    TXN ||--o{ FRAUD_ALERT : triggers
+
+    REGION {
+        varchar region_code PK
+        varchar region_name UK
+    }
+    STATE {
+        char state_code PK
+        varchar state_name UK
+        varchar region_code FK
+    }
+    KYC_TIER {
+        smallint tier_id PK
+        varchar tier_name UK
+        numeric daily_limit
+        numeric max_balance
+    }
+    BANK {
+        char bank_code PK
+        varchar bank_name UK
+    }
+    BRANCH {
+        smallint branch_id PK
+        char branch_code UK
+        varchar branch_name
+        char state_code FK
+    }
+    CUSTOMER {
+        int customer_id PK
+        char bvn UK
+        varchar first_name
+        varchar last_name
+        varchar email UK
+        varchar phone UK
+        date date_of_birth
+        char state_code FK
+        smallint home_branch_id FK
+        smallint kyc_tier_id FK
+        varchar status
+        timestamptz created_at
+    }
+    ACCOUNT {
+        int account_id PK
+        char account_number UK
+        int customer_id FK
+        varchar account_type
+        char currency
+        numeric balance
+        numeric overdraft_limit
+        varchar status
+        int version
+        timestamptz opened_at
+    }
+    TXN {
+        bigint txn_id PK
+        uuid reference UK
+        varchar txn_type
+        varchar channel
+        numeric amount
+        varchar status
+        bigint reverses_txn_id FK
+        timestamptz created_at
+    }
+    LEDGER_ENTRY {
+        bigint entry_id PK
+        bigint txn_id FK
+        int account_id FK
+        char direction
+        numeric amount
+        numeric balance_after
+    }
+    BENEFICIARY {
+        int customer_id PK,FK
+        char bank_code PK,FK
+        char account_number PK
+        varchar nickname
+    }
+    FRAUD_ALERT {
+        bigint alert_id PK
+        bigint txn_id FK
+        varchar rule_code
+        numeric risk_score
+        varchar status
+    }

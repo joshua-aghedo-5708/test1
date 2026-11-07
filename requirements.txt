@@ -1,0 +1,4 @@
+psycopg[binary]==3.3.8
+pymongo==4.18.3
+redis==8.1.0
+matplotlib==3.10.9

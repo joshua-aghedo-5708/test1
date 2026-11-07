@@ -1,0 +1,21 @@
+Creating schema ...
+Generating 20,000 customers ...
+Generated 29,482 accounts
+Simulating 600,000 transactions ...
+  630,985 txns, 1,183,886 ledger legs
+
+Row counts:
+  ledger_entry     1,183,886
+  txn                630,985
+  account             29,482
+  customer            20,001
+  beneficiary         10,000
+  fraud_alert          6,040
+  branch                  20
+  state                   20
+  bank                    10
+  region                   6
+  kyc_tier                 3
+  audit_log                0
+
+Integrity: 0 unbalanced txns, 0 balance drift. Done in 217s
