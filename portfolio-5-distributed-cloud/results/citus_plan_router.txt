@@ -1,0 +1,29 @@
+Custom Scan (Citus Adaptive)  (cost=0.00..0.00 rows=0 width=0) (actual time=6.140..6.144 rows=7 loops=1)
+  Task Count: 1
+  Tuple data received from nodes: 225 bytes
+  Tasks Shown: All
+  ->  Task
+        Tuple data received from node: 225 bytes
+        Node: host=citus-w1 port=5432 dbname=nairaflow
+        ->  Limit  (cost=308.29..308.31 rows=8 width=80) (actual time=0.278..0.283 rows=7 loops=1)
+              ->  Sort  (cost=308.29..308.31 rows=8 width=80) (actual time=0.276..0.279 rows=7 loops=1)
+                    Sort Key: l.created_at DESC
+                    Sort Method: quicksort  Memory: 25kB
+                    ->  Hash Join  (cost=33.29..308.17 rows=8 width=80) (actual time=0.091..0.161 rows=7 loops=1)
+                          Hash Cond: (l.account_id = a.account_id)
+                          ->  Bitmap Heap Scan on ledger_entry_102030 l  (cost=5.49..279.95 rows=155 width=44) (actual time=0.044..0.108 rows=7 loops=1)
+                                Recheck Cond: (customer_id = 501)
+                                Heap Blocks: exact=7
+                                ->  Bitmap Index Scan on ledger_entry_pkey_102030  (cost=0.00..5.45 rows=155 width=0) (actual time=0.023..0.024 rows=7 loops=1)
+                                      Index Cond: (customer_id = 501)
+                          ->  Hash  (cost=27.67..27.67 rows=10 width=52) (actual time=0.033..0.034 rows=1 loops=1)
+                                Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                                ->  Bitmap Heap Scan on account_102022 a  (cost=4.36..27.67 rows=10 width=52) (actual time=0.015..0.017 rows=1 loops=1)
+                                      Recheck Cond: (customer_id = 501)
+                                      Heap Blocks: exact=1
+                                      ->  Bitmap Index Scan on account_pkey_102022  (cost=0.00..4.35 rows=10 width=0) (actual time=0.008..0.008 rows=1 loops=1)
+                                            Index Cond: (customer_id = 501)
+            Planning Time: 0.450 ms
+            Execution Time: 0.353 ms
+Planning Time: 2.246 ms
+Execution Time: 6.224 ms

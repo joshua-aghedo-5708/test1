@@ -1,0 +1,2 @@
+('replica_async', IPv4Address('172.24.0.3'), 'streaming', 'async', '0/830BBD0', '0/830BBD0', '00:00:00.004755')
+('replica_sync', IPv4Address('172.24.0.4'), 'streaming', 'sync', '0/830BBD0', '0/830BBD0', '00:00:00.005338')

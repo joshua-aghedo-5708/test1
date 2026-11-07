@@ -1,0 +1,33 @@
+Sort  (cost=761.64..762.14 rows=200 width=56) (actual time=372.115..372.119 rows=6 loops=1)
+  Sort Key: (sum(remote_scan.sum)) DESC
+  Sort Method: quicksort  Memory: 25kB
+  ->  HashAggregate  (cost=750.00..754.00 rows=200 width=56) (actual time=372.062..372.074 rows=6 loops=1)
+        Group Key: remote_scan.region_code
+        Batches: 1  Memory Usage: 40kB
+        ->  Custom Scan (Citus Adaptive)  (cost=0.00..0.00 rows=100000 width=56) (actual time=371.978..371.988 rows=48 loops=1)
+              Task Count: 8
+              Tuple data received from nodes: 1176 bytes
+              Tasks Shown: One of 8
+              ->  Task
+                    Tuple data received from node: 148 bytes
+                    Node: host=citus-w1 port=5432 dbname=nairaflow
+                    ->  GroupAggregate  (cost=831.53..835.01 rows=155 width=56) (actual time=259.342..268.925 rows=6 loops=1)
+                          Group Key: s.region_code
+                          ->  Sort  (cost=831.53..831.91 rows=155 width=36) (actual time=257.250..259.583 rows=17735 loops=1)
+                                Sort Key: s.region_code
+                                Sort Method: quicksort  Memory: 1317kB
+                                ->  Nested Loop  (cost=73.19..825.89 rows=155 width=36) (actual time=2.402..209.542 rows=17735 loops=1)
+                                      ->  Hash Join  (cost=73.04..795.85 rows=155 width=32) (actual time=2.346..70.652 rows=17735 loops=1)
+                                            Hash Cond: (l.customer_id = c.customer_id)
+                                            ->  Seq Scan on ledger_entry_102028 l  (cost=0.00..722.40 rows=155 width=24) (actual time=0.038..50.334 rows=17735 loops=1)
+                                                  Filter: (direction = 'D'::bpchar)
+                                                  Rows Removed by Filter: 17616
+                                            ->  Hash  (cost=50.24..50.24 rows=1824 width=16) (actual time=2.268..2.271 rows=2515 loops=1)
+                                                  Buckets: 4096 (originally 2048)  Batches: 1 (originally 1)  Memory Usage: 128kB
+                                                  ->  Seq Scan on customer_102012 c  (cost=0.00..50.24 rows=1824 width=16) (actual time=0.073..1.127 rows=2515 loops=1)
+                                      ->  Index Scan using state_pkey_102009 on state_102009 s  (cost=0.15..0.19 rows=1 width=28) (actual time=0.006..0.006 rows=1 loops=17735)
+                                            Index Cond: (state_code = c.state_code)
+                        Planning Time: 1.922 ms
+                        Execution Time: 269.292 ms
+Planning Time: 7.000 ms
+Execution Time: 372.198 ms

@@ -1,0 +1,67 @@
+# Portfolio 5: distributed NairaFlow lab.
+#   A) PostgreSQL streaming replication: 1 primary, 1 synchronous + 1 asynchronous hot standby
+#   B) Citus (distributed PostgreSQL): 1 coordinator + 2 worker shards
+#   C) MongoDB 3-node replica set (automatic election)
+# Local lab credentials only.
+name: nairaflow-p5
+
+x-pg-env: &pgenv
+  POSTGRES_USER: nairaflow
+  POSTGRES_PASSWORD: nairaflow_dev
+  POSTGRES_DB: nairaflow
+
+services:
+  # ---------------- A) streaming replication ----------------
+  pg-primary:
+    image: postgres:17
+    environment: *pgenv
+    ports: ["5441:5432"]
+    command: >
+      postgres -c wal_level=replica -c max_wal_senders=10 -c max_replication_slots=10
+               -c hot_standby=on -c synchronous_commit=on -c wal_keep_size=256MB
+    # synchronous_standby_names is enabled later with ALTER SYSTEM (run_distributed.py):
+    # setting it at first boot makes initdb's own CREATE DATABASE wait forever for a standby
+    # that cannot clone the primary until init has finished.
+    volumes:
+      - ./replication/primary-init.sh:/docker-entrypoint-initdb.d/10-replication.sh:ro
+
+  pg-replica-sync:
+    image: postgres:17
+    user: postgres
+    environment: { PGDATA: /var/lib/postgresql/data/pgdata, APP_NAME: replica_sync, SLOT: replica_sync }
+    ports: ["5442:5432"]
+    entrypoint: ["bash", "/replica-entrypoint.sh"]
+    volumes: ["./replication/replica-entrypoint.sh:/replica-entrypoint.sh:ro"]
+    depends_on: [pg-primary]
+
+  pg-replica-async:
+    image: postgres:17
+    user: postgres
+    environment: { PGDATA: /var/lib/postgresql/data/pgdata, APP_NAME: replica_async, SLOT: replica_async }
+    ports: ["5443:5432"]
+    entrypoint: ["bash", "/replica-entrypoint.sh"]
+    volumes: ["./replication/replica-entrypoint.sh:/replica-entrypoint.sh:ro"]
+    depends_on: [pg-primary]
+
+  # ---------------- B) Citus sharding ----------------
+  citus-coord:
+    image: citusdata/citus:13.0
+    environment: { <<: *pgenv, POSTGRES_HOST_AUTH_METHOD: trust }
+    ports: ["5450:5432"]
+  citus-w1:
+    image: citusdata/citus:13.0
+    environment: { <<: *pgenv, POSTGRES_HOST_AUTH_METHOD: trust }
+  citus-w2:
+    image: citusdata/citus:13.0
+    environment: { <<: *pgenv, POSTGRES_HOST_AUTH_METHOD: trust }
+
+  # ---------------- C) MongoDB replica set ----------------
+  mongo-a:
+    image: mongo:7
+    command: ["--replSet", "rs1", "--bind_ip_all"]
+  mongo-b:
+    image: mongo:7
+    command: ["--replSet", "rs1", "--bind_ip_all"]
+  mongo-c:
+    image: mongo:7
+    command: ["--replSet", "rs1", "--bind_ip_all"]
