@@ -1,7 +1,7 @@
 # Advanced Database Systems Portfolio: NairaFlow Digital Bank
 
 **MIT 8103 Advanced Database Systems, 2026/2027 First Semester Continuous Assessment**
-Student: `<YOUR NAME>` · Matric no.: `<YOUR MATRIC NUMBER>`
+Student: Joshua Aghedo · Student ID: 301835708
 
 ## Selected case study
 

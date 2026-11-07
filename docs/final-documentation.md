@@ -1,6 +1,6 @@
 # MIT 8103 Advanced Database Systems: Portfolio Documentation
 
-**Student:** `<YOUR NAME>` · **Matric no.:** `<YOUR MATRIC NUMBER>` · **GitHub:** `<https://github.com/YOUR-USERNAME/advanced-database-portfolio>` (private; assessor added as collaborator)
+**Student:** Joshua Aghedo · **Student ID:** 301835708 · **GitHub:** `<https://github.com/YOUR-USERNAME/advanced-database-portfolio>` (private; assessor added as collaborator)
 
 ## 1. Selected organisation
 
