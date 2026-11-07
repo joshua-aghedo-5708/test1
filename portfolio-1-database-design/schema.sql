@@ -158,7 +158,7 @@ CREATE TABLE audit_log (
 -- (1) Double-entry rule: sum(debits) = sum(credits) for every txn.
 --     DEFERRABLE INITIALLY DEFERRED so it is checked at COMMIT, after
 --     both legs exist (a row-level CHECK cannot see other rows).
-CREATE FUNCTION check_txn_balanced() RETURNS trigger LANGUAGE plpgsql AS $$
+CREATE FUNCTION check_txn_balanced() RETURNS trigger LANGUAGE plpgsql SET search_path = bank, public AS $$
 DECLARE d NUMERIC; c NUMERIC;
 BEGIN
     SELECT COALESCE(SUM(amount) FILTER (WHERE direction='D'),0),
@@ -178,7 +178,7 @@ CREATE CONSTRAINT TRIGGER ledger_balanced
     FOR EACH ROW EXECUTE FUNCTION check_txn_balanced();
 
 -- (2) Ledger is append-only: corrections are made with REVERSAL txns.
-CREATE FUNCTION forbid_ledger_change() RETURNS trigger LANGUAGE plpgsql AS $$
+CREATE FUNCTION forbid_ledger_change() RETURNS trigger LANGUAGE plpgsql SET search_path = bank, public AS $$
 BEGIN
     RAISE EXCEPTION 'ledger_entry is append-only; post a REVERSAL instead';
 END $$;
@@ -188,7 +188,7 @@ CREATE TRIGGER ledger_append_only
     FOR EACH ROW EXECUTE FUNCTION forbid_ledger_change();
 
 -- (3) Audit every change to account rows (status, balance, limits).
-CREATE FUNCTION audit_account() RETURNS trigger LANGUAGE plpgsql AS $$
+CREATE FUNCTION audit_account() RETURNS trigger LANGUAGE plpgsql SET search_path = bank, public AS $$
 BEGIN
     INSERT INTO audit_log(table_name, row_pk, action, old_row, new_row)
     VALUES (TG_TABLE_NAME,
@@ -214,7 +214,7 @@ CREATE PROCEDURE transfer_funds(
     p_channel   VARCHAR DEFAULT 'MOBILE',
     p_reference UUID    DEFAULT gen_random_uuid(),
     p_narration VARCHAR DEFAULT NULL)
-LANGUAGE plpgsql AS $$
+LANGUAGE plpgsql SET search_path = bank, public AS $$
 DECLARE
     v_from account%ROWTYPE;
     v_to   account%ROWTYPE;

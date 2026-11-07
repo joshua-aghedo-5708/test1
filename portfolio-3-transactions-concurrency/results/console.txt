@@ -1,0 +1,157 @@
+
+==============================================================================
+SETUP: create lab database nairaflow_p3 from Portfolio 1 schema
+==============================================================================
+   1.633s  [SETUP] schema + fixture loaded (customers: 1 bank GL, Ada=2, Musa=3, Ngozi=4)
+
+==============================================================================
+S1  COMMIT: a transfer is atomic and durable (ledger + both balances)
+==============================================================================
+   1.806s  [S1] BEGIN; CALL transfer_funds('1000000001','1000000002', 15000)
+   1.821s  [S1] COMMIT
+   1.833s  [S1] ledger leg: acct=1000000001 D 15000.00 balance_after=35000.00
+   1.833s  [S1] ledger leg: acct=1000000002 C 15000.00 balance_after=25000.00
+   1.941s  [RESULT] sender 35000.00, receiver 25000.00; 2 ledger legs  =>  PASS
+
+==============================================================================
+S2  ROLLBACK: insufficient funds aborts the whole transfer; explicit ROLLBACK undoes work
+==============================================================================
+   2.199s  [S1] CALL transfer_funds('1000000003','1000000004', 9000)  -- balance is only 5000
+   2.221s  [S1] ERROR: Insufficient funds in 1000000003 (balance 5000.00, requested 9000)
+   2.223s  [S1] ROLLBACK
+   2.223s  [S1] BEGIN; UPDATE account SET status='FROZEN' (operator mistake) ...
+   2.238s  [S1] inside txn status = FROZEN
+   2.240s  [S1] ROLLBACK
+   2.375s  [RESULT] balance 5000.00, status ACTIVE, txns for 9000 = 0  =>  PASS
+
+==============================================================================
+S3  ATOMICITY via DEFERRED constraint: a one-legged (unbalanced) posting is rejected at COMMIT
+==============================================================================
+   2.512s  [S1] BEGIN; INSERT txn + only the DEBIT leg (bug: credit leg missing)
+   2.535s  [S1] INSERTs succeeded (check is deferred) ... COMMIT
+   2.540s  [S1] COMMIT failed: Unbalanced txn 6: debits 777.00 <> credits 0
+   2.544s  [RESULT] txn rows persisted = 0  =>  PASS
+
+==============================================================================
+S4  SAVEPOINT: salary batch where one payee is frozen; the batch continues
+==============================================================================
+   3.789s  [S1] paid 250000 to 1000000007
+   3.813s  [S1] payee 1000000008: Account not active -> ROLLBACK TO SAVEPOINT, continue
+   3.826s  [S1] paid 250000 to 1000000009
+   3.889s  [S1] COMMIT batch
+   4.147s  [RESULT] 2/3 paid, payer balance 500000.00  =>  PASS
+
+==============================================================================
+S5  LOST UPDATE under READ COMMITTED with read-modify-write in the app
+==============================================================================
+   4.419s  [S1] BEGIN; SELECT balance -> 10000.00; wants to withdraw 7000
+   4.426s  [S2] BEGIN; SELECT balance -> 10000.00; wants to withdraw 7000
+   4.440s  [S1] UPDATE balance=3000.00; COMMIT
+   4.453s  [S2] UPDATE balance=3000.00; COMMIT  (overwrites S1's write)
+   4.583s  [RESULT] 14000 withdrawn from 10000 but final balance 3000.00; reconciliation vs ledger shows drift -7000.00  =>  ANOMALY REPRODUCED
+
+==============================================================================
+S6  FIX 1, pessimistic locking: SELECT ... FOR UPDATE serialises the two withdrawals
+==============================================================================
+   4.841s  [S1] BEGIN; SELECT balance FOR UPDATE -> 10000.00 (row locked)
+   4.841s  [S2] BEGIN; SELECT balance ... FOR UPDATE   (blocks: S1 holds the row lock)
+   6.467s  [S1] UPDATE balance-7000; COMMIT (lock released)
+   6.468s  [S2] lock granted after 1.63s, sees balance 3000.00
+   6.468s  [S2] insufficient funds -> ROLLBACK
+   6.594s  [RESULT] final balance 3000.00, second withdrawal rejected  =>  PASS
+
+==============================================================================
+S7  FIX 2, optimistic locking: version column, UPDATE ... WHERE version = :read_version
+==============================================================================
+   7.030s  [S1] read balance=10000.00, version=1
+   7.035s  [S2] read balance=10000.00, version=1
+   7.051s  [S1] UPDATE ... WHERE version=1 -> 1 row; COMMIT
+   7.057s  [S2] UPDATE ... WHERE version=1 -> 0 rows (stale read detected)
+   7.065s  [S2] retry: re-read balance=3000.00, version=2 -> insufficient, abort
+   7.163s  [RESULT] rows updated S1=1, S2=0; final balance 3000.00  =>  PASS
+
+==============================================================================
+S8  FIX 3, REPEATABLE READ: the second writer gets a serialization failure (SQLSTATE 40001)
+==============================================================================
+   7.308s  [S1] BEGIN ISOLATION LEVEL REPEATABLE READ; balance -> 10000.00
+   7.313s  [S2] BEGIN ISOLATION LEVEL REPEATABLE READ; balance -> 10000.00
+   7.322s  [S1] UPDATE; COMMIT
+   7.326s  [S2] ERROR 40001: could not serialize access due to concurrent update -> app must retry
+   7.399s  [RESULT] S2 error 40001, final balance 3000.00  =>  PASS
+
+==============================================================================
+S9  NON-REPEATABLE READ: READ COMMITTED vs REPEATABLE READ for an audit report
+==============================================================================
+   7.524s  [S1] READ_COMMITTED: audit read #1 balance = 40000.00
+   7.541s  [S2] deposit 5000; COMMIT
+   7.544s  [S1] READ_COMMITTED: audit read #2 balance = 45000.00  (changed)
+   7.724s  [S1] REPEATABLE_READ: audit read #1 balance = 40000.00
+   7.786s  [S2] deposit 5000; COMMIT
+   7.788s  [S1] REPEATABLE_READ: audit read #2 balance = 40000.00  (stable snapshot)
+   7.791s  [RESULT] RC reads 40000.00 then 45000.00, RR reads 40000.00 then 40000.00  =>  PASS (RC shows anomaly, RR prevents it)
+
+==============================================================================
+S10 WRITE SKEW: rule 'Ngozi's combined balance across her two accounts must stay >= 0'
+==============================================================================
+   8.102s  [S1] REPEATABLE_READ: combined = 10000.00, withdraw 8000 from A is allowed
+   8.108s  [S2] REPEATABLE_READ: combined = 10000.00, withdraw 8000 from B is allowed
+   8.114s  [S1] UPDATE A balance-8000
+   8.152s  [S1] COMMIT ok
+   8.162s  [S2] UPDATE B balance-8000
+   8.197s  [S2] COMMIT ok
+   8.320s  [CHECK] REPEATABLE_READ: combined balance now -6000.00
+   8.653s  [S1] SERIALIZABLE: combined = 10000.00, withdraw 8000 from A is allowed
+   8.658s  [S2] SERIALIZABLE: combined = 10000.00, withdraw 8000 from B is allowed
+   8.662s  [S1] UPDATE A balance-8000
+   8.689s  [S1] COMMIT ok
+   8.692s  [S2] COMMIT failed 40001: could not serialize access due to read/write dependencies among transactions
+   8.769s  [CHECK] SERIALIZABLE: combined balance now 2000.00
+   8.770s  [RESULT] REPEATABLE READ: both committed, combined -6000.00; SERIALIZABLE: S2 aborted (40001), combined 2000.00  =>  PASS (SSI prevents write skew)
+
+==============================================================================
+S11 DEADLOCK: two transfers lock accounts in opposite order; PostgreSQL detects it
+==============================================================================
+   9.098s  [S1] locked 1000000020
+   9.098s  [S2] locked 1000000021
+   9.098s  [S2] now wants 1000000020 ...
+   9.098s  [S1] now wants 1000000021 ...
+  10.119s  [S2] ERROR 40P01 deadlock detected, chosen as victim: Process 672 waits for ShareLock on transaction 1582; blocked by process 671.
+  10.144s  [S1] COMMIT
+  10.147s  [RESULT] victims: ['S2']  =>  DEADLOCK REPRODUCED and resolved by the DBMS
+
+==============================================================================
+S11b FIX: transfer_funds() locks both rows ordered by account_number; 400 opposing transfers, 8 threads
+==============================================================================
+  17.935s  [STRESS] {'ok': 400, 'deadlock': 0, 'other': 0} in 7.55s (53 transfers/s)
+  17.983s  [RESULT] 400 committed, 0 deadlocks, money conserved: True  =>  PASS
+
+==============================================================================
+S12 IDEMPOTENCY + AUDIT: a retried request with the same reference is applied once
+==============================================================================
+  18.090s  [S1] attempt 1: CALL transfer_funds(..., 12000, reference=fad1cb70...)
+  18.115s  [S1] attempt 2: CALL transfer_funds(..., 12000, reference=fad1cb70...)
+  18.118s  [S1] NOTICE: Duplicate reference fad1cb70-5c0f-41e6-a0c5-9c3ea70220d1, ignored
+  18.127s  [S1] audit_log rows for sender: 2, last change 30000.00 -> 18000.00
+  18.200s  [RESULT] txn rows with that reference = 1, sender balance 18000.00  =>  PASS
+
+==============================================================================
+FINAL: ledger integrity in the lab database
+==============================================================================
+  18.235s  [CHECK] unbalanced txns: 0
+  18.235s  [CHECK] accounts whose balance drifted from the ledger: 9 (expected: only the accounts hit by direct UPDATEs in S5-S11a, which bypassed transfer_funds)
+
+| Scenario | Observed | Verdict |
+|---|---|---|
+| S1 commit | sender 35000.00, receiver 25000.00; 2 ledger legs | PASS |
+| S2 rollback | balance 5000.00, status ACTIVE, txns for 9000 = 0 | PASS |
+| S3 deferred constraint | txn rows persisted = 0 | PASS |
+| S4 savepoint | 2/3 paid, payer balance 500000.00 | PASS |
+| S5 lost update (anomaly shown) | 14000 withdrawn from 10000 but final balance 3000.00; reconciliation vs ledger shows drift -7000.00 | ANOMALY REPRODUCED |
+| S6 FOR UPDATE | final balance 3000.00, second withdrawal rejected | PASS |
+| S7 optimistic | rows updated S1=1, S2=0; final balance 3000.00 | PASS |
+| S8 repeatable read | S2 error 40001, final balance 3000.00 | PASS |
+| S9 non-repeatable read | RC reads 40000.00 then 45000.00, RR reads 40000.00 then 40000.00 | PASS (RC shows anomaly, RR prevents it) |
+| S10 write skew | REPEATABLE READ: both committed, combined -6000.00; SERIALIZABLE: S2 aborted (40001), combined 2000.00 | PASS (SSI prevents write skew) |
+| S11a deadlock (naive order) | victims: ['S2'] | DEADLOCK REPRODUCED and resolved by the DBMS |
+| S11b ordered locking | 400 committed, 0 deadlocks, money conserved: True | PASS |
+| S12 idempotency | txn rows with that reference = 1, sender balance 18000.00 | PASS |
