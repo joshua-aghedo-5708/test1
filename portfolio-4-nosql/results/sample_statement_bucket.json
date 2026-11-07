@@ -1,0 +1,51 @@
+{
+  "_id": "8580443833:2026-08",
+  "account_number": "8580443833",
+  "month": "2026-08",
+  "customer_id": 1028,
+  "count": 103,
+  "entries": [
+    {
+      "ts": "2026-08-01 00:01:17.035000",
+      "txn_id": 548918,
+      "type": "WITHDRAWAL",
+      "dir": "D",
+      "amount": "1973.38",
+      "balance_after": "25113220.79"
+    },
+    {
+      "ts": "2026-08-01 01:59:51.406000",
+      "txn_id": 548980,
+      "type": "TRANSFER",
+      "dir": "D",
+      "amount": "6964.68",
+      "balance_after": "25106256.11"
+    },
+    {
+      "ts": "2026-08-01 05:15:50.182000",
+      "txn_id": 547900,
+      "type": "REVERSAL",
+      "dir": "D",
+      "amount": "20285.81",
+      "balance_after": "25209155.38"
+    },
+    {
+      "ts": "2026-08-01 15:28:31.018000",
+      "txn_id": 549485,
+      "type": "TRANSFER",
+      "dir": "C",
+      "amount": "28621.06",
+      "balance_after": "25134877.17"
+    },
+    {
+      "ts": "2026-08-01 22:20:37.307000",
+      "txn_id": 549756,
+      "type": "DEPOSIT",
+      "dir": "C",
+      "amount": "94182.62",
+      "balance_after": "25229059.79"
+    },
+    "... 98 more"
+  ],
+  "closing_balance": "26760315.35"
+}

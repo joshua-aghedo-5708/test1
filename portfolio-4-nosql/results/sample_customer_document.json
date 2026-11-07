@@ -1,0 +1,52 @@
+{
+  "_id": 4242,
+  "bvn": "14718659822",
+  "name": {
+    "first": "Aisha",
+    "last": "Obi"
+  },
+  "email": "aisha.obi4242@mail.ng",
+  "phone": "+2348000004242",
+  "dob": "1998-09-11 00:00:00",
+  "address": {
+    "state": "FCT Abuja",
+    "region": "North Central"
+  },
+  "home_branch": "FCT Abuja Main",
+  "kyc": {
+    "tier": 2,
+    "daily_limit": "200000.00"
+  },
+  "status": "ACTIVE",
+  "created_at": "2022-04-19 20:19:06.220000",
+  "accounts": [
+    {
+      "account_number": "8731227982",
+      "type": "SAVINGS",
+      "currency": "NGN",
+      "balance": "240110.58",
+      "overdraft_limit": "0.00",
+      "status": "ACTIVE",
+      "opened_at": "2022-04-19 20:19:06.220000"
+    },
+    {
+      "account_number": "2568627973",
+      "type": "CURRENT",
+      "currency": "NGN",
+      "balance": "356489.07",
+      "overdraft_limit": "0.00",
+      "status": "ACTIVE",
+      "opened_at": "2022-04-19 20:19:06.220000"
+    },
+    {
+      "account_number": "2515509073",
+      "type": "WALLET",
+      "currency": "NGN",
+      "balance": "889236.19",
+      "overdraft_limit": "0.00",
+      "status": "ACTIVE",
+      "opened_at": "2022-04-19 20:19:06.220000"
+    }
+  ],
+  "beneficiaries": []
+}

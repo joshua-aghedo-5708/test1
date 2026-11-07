@@ -1,0 +1,70 @@
+[
+  [
+    "login by phone",
+    {
+      "plan": "COLLSCAN",
+      "docsExamined": 20000,
+      "keysExamined": 0,
+      "returned": 1,
+      "ms": 42
+    },
+    {
+      "plan": "FETCH <- IXSCAN(phone_1)",
+      "docsExamined": 1,
+      "keysExamined": 1,
+      "returned": 1,
+      "ms": 3
+    }
+  ],
+  [
+    "find customer by account number (multikey)",
+    {
+      "plan": "COLLSCAN",
+      "docsExamined": 20000,
+      "keysExamined": 0,
+      "returned": 1,
+      "ms": 23
+    },
+    {
+      "plan": "FETCH <- IXSCAN(accounts.account_number_1)",
+      "docsExamined": 1,
+      "keysExamined": 1,
+      "returned": 1,
+      "ms": 1
+    }
+  ],
+  [
+    "account statement: last 20 txns for an account",
+    {
+      "plan": "SORT <- COLLSCAN",
+      "docsExamined": 82072,
+      "keysExamined": 0,
+      "returned": 20,
+      "ms": 125
+    },
+    {
+      "plan": "LIMIT <- FETCH <- IXSCAN(legs.account_number_1_created_at_-1)",
+      "docsExamined": 20,
+      "keysExamined": 20,
+      "returned": 20,
+      "ms": 2
+    }
+  ],
+  [
+    "failed transfers queue",
+    {
+      "plan": "SORT <- COLLSCAN",
+      "docsExamined": 82072,
+      "keysExamined": 0,
+      "returned": 50,
+      "ms": 56
+    },
+    {
+      "plan": "LIMIT <- FETCH <- IXSCAN(status_1_type_1_created_at_-1)",
+      "docsExamined": 50,
+      "keysExamined": 50,
+      "returned": 50,
+      "ms": 1
+    }
+  ]
+]

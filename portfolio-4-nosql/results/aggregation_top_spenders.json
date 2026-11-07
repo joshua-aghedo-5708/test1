@@ -1,0 +1,102 @@
+[
+  {
+    "_id": 2844,
+    "outflow": "39244548.90",
+    "debits": 1332,
+    "name": {
+      "first": "Segun",
+      "last": "Adebayo"
+    },
+    "region": "South East"
+  },
+  {
+    "_id": 17239,
+    "outflow": "21051292.81",
+    "debits": 758,
+    "name": {
+      "first": "Nnamdi",
+      "last": "Okafor"
+    },
+    "region": "South West"
+  },
+  {
+    "_id": 12641,
+    "outflow": "15548007.93",
+    "debits": 515,
+    "name": {
+      "first": "Funmi",
+      "last": "Babatunde"
+    },
+    "region": "North West"
+  },
+  {
+    "_id": 16015,
+    "outflow": "13291196.18",
+    "debits": 456,
+    "name": {
+      "first": "Femi",
+      "last": "Nnadi"
+    },
+    "region": "South South"
+  },
+  {
+    "_id": 12439,
+    "outflow": "9708568.75",
+    "debits": 347,
+    "name": {
+      "first": "Ikenna",
+      "last": "Igwe"
+    },
+    "region": "North Central"
+  },
+  {
+    "_id": 7197,
+    "outflow": "8994520.93",
+    "debits": 307,
+    "name": {
+      "first": "Ngozi",
+      "last": "Usman"
+    },
+    "region": "South West"
+  },
+  {
+    "_id": 17086,
+    "outflow": "8651638.24",
+    "debits": 327,
+    "name": {
+      "first": "Kemi",
+      "last": "Onyeka"
+    },
+    "region": "North Central"
+  },
+  {
+    "_id": 18813,
+    "outflow": "8309519.67",
+    "debits": 253,
+    "name": {
+      "first": "Sola",
+      "last": "Adeyemi"
+    },
+    "region": "North West"
+  },
+  {
+    "_id": 5761,
+    "outflow": "7295014.35",
+    "debits": 226,
+    "name": {
+      "first": "Adaeze",
+      "last": "Igwe"
+    },
+    "region": "North Central"
+  },
+  {
+    "_id": 5535,
+    "outflow": "6194605.07",
+    "debits": 218,
+    "name": {
+      "first": "Ade",
+      "last": "Lawal"
+    },
+    "region": "North Central"
+  }
+]
