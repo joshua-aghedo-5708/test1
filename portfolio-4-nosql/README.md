@@ -104,6 +104,26 @@ This took **43 ms**. In SQL this needs a recursive CTE over `ledger_entry`. A de
 - **Storage:** 82k transactions use 42.5 MB data + 10.5 MB indexes. That's larger per row than PostgreSQL, because BSON repeats field names in every document.
 - **Redis is not durable by default.** Every key here is either rebuildable from PostgreSQL (cache, leaderboard) or short-lived by design (idempotency, sessions, velocity windows).
 
+## Screenshots
+
+Terminal captures produced by [`scripts/capture_evidence.py`](../scripts/capture_evidence.py): each image is the real output of the command shown in its title bar (a live `psql` query against the lab database, or the command that prints a committed results file).
+
+**AggregationTransactionGraph**
+
+![AggregationTransactionGraph](screenshots/P4_AggregationTransactionGraph.png)
+
+**ETLValidationIndexes**
+
+![ETLValidationIndexes](screenshots/P4_ETLValidationIndexes.png)
+
+**RedisAndStorage**
+
+![RedisAndStorage](screenshots/P4_RedisAndStorage.png)
+
+**SampleCustomerDocument**
+
+![SampleCustomerDocument](screenshots/P4_SampleCustomerDocument.png)
+
 ## How to run
 
 ```bash

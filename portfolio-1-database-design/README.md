@@ -56,6 +56,26 @@ After loading, two set-based checks must return zero: unbalanced transactions = 
 
 > **Second lesson:** the first data load *failed* because the `customer_adult` CHECK rejected generated customers who were under 18 on their sign-up date. The constraint caught a bug in my generator. I fixed the generator, not the constraint.
 
+## Screenshots
+
+Terminal captures produced by [`scripts/capture_evidence.py`](../scripts/capture_evidence.py): each image is the real output of the command shown in its title bar (a live `psql` query against the lab database, or the command that prints a committed results file).
+
+**ConstraintViolations**
+
+![ConstraintViolations](screenshots/P1_ConstraintViolations.png)
+
+**RowCountsAndIntegrity**
+
+![RowCountsAndIntegrity](screenshots/P1_RowCountsAndIntegrity.png)
+
+**TableList**
+
+![TableList](screenshots/P1_TableList.png)
+
+**TransferProcedure**
+
+![TransferProcedure](screenshots/P1_TransferProcedure.png)
+
 ## How to run
 
 ```bash

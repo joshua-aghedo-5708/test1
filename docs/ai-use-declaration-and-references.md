@@ -1,14 +1,14 @@
 # AI Use Declaration and References
 
-## AI Use Declaration (draft: review and edit so it is accurate for you)
+## AI Use Declaration
 
 | Item | Declaration |
 |---|---|
-| **AI tool used** | Claude (Anthropic), model Claude Opus 5.5, used through the Claude Code desktop app |
-| **What it was used for** | Generating the initial versions of the SQL schema, Python experiment scripts, Docker Compose files and README drafts from my chosen case study and the assessment brief, and running them against local Docker databases. Git commits made with the tool are marked `Co-Authored-By: Claude`. |
-| **How the output was reviewed, corrected, tested and verified** | Every script was executed against real PostgreSQL, MongoDB and Redis instances, and the committed results are those actual outputs (not invented numbers). Defects found by running the code were fixed and are documented in the READMEs: the under-18 customer generator bug caught by the `customer_adult` constraint (P1); the O(n²) correlated reconciliation query (P1/P2); the missing `search_path` on PL/pgSQL functions (P3); the synchronous-replication bootstrap deadlock (P5). Integrity checks (0 unbalanced transactions, 0 balance drift, 15/15 constraint tests) were run after loading. `<ADD: what you personally checked, changed or re-ran, e.g. "I re-ran all scripts on my machine, read each execution plan, and rewrote the analysis sections in my own words.">` |
+| **AI tool used** | Claude (Anthropic), model Claude Opus 5.5, running as an autonomous coding agent in the Claude Code desktop app on the student's computer |
+| **What it was used for** | The whole practical portfolio. The student supplied the assessment brief and chose among options the AI offered (fintech case study, MongoDB, repository location). Claude designed the schema and ER diagram, wrote all SQL, Python, Docker Compose and Terraform files, generated the synthetic dataset, ran every experiment, captured the evidence screenshots, and wrote all documentation (READMEs, normalisation write-up, portfolio summary). Every Git commit is marked `Co-Authored-By: Claude`. |
+| **How the output was reviewed, corrected, tested and verified** | Verification was carried out by Claude by executing every script against live PostgreSQL 17, Citus 13, MongoDB 7 and Redis 7 containers; all reported figures, plans, transcripts and screenshots are those actual outputs. Defects exposed by running the code were fixed and are documented: the under-18 customer generator bug caught by the `customer_adult` constraint (P1); the O(n^2) correlated reconciliation query (P1/P2); the missing `search_path` on PL/pgSQL functions (P3); the synchronous-replication bootstrap deadlock (P5). Integrity checks passed: 0 unbalanced transactions, 0 balance drift, 15/15 constraint tests. |
 
-I understand that use of AI does not remove my responsibility for the accuracy, originality and understanding of this work, and that I may be asked to explain any part of it.
+The individual technical reflection (`individual-reflection.md`, section 7 of the summary) is the only part written by the student. Under section 11 of the brief, responsibility for the accuracy and understanding of the submission remains with the student.
 
 ## References and external resources
 

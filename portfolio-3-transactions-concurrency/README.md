@@ -58,6 +58,26 @@ Final integrity check of the lab database: **0 unbalanced transactions**. 9 acco
 
 The first run failed in S4 with `relation "account" does not exist` inside `lab_deposit()`. The PL/pgSQL functions used unqualified table names, so they only worked when the *caller* had set `search_path = bank`. This also affected `transfer_funds()` and all three trigger functions in Portfolio 1. Besides being fragile, a function that resolves names through the caller's `search_path` is a known security risk (search-path hijacking). Fixed by adding `SET search_path = bank, public` to every function and procedure in [`schema.sql`](../portfolio-1-database-design/schema.sql) and applying it to the live database with `ALTER FUNCTION … SET search_path`.
 
+## Screenshots
+
+Terminal captures produced by [`scripts/capture_evidence.py`](../scripts/capture_evidence.py): each image is the real output of the command shown in its title bar (a live `psql` query against the lab database, or the command that prints a committed results file).
+
+**CommitRollbackSavepoint**
+
+![CommitRollbackSavepoint](screenshots/P3_CommitRollbackSavepoint.png)
+
+**DeadlockAndIdempotency**
+
+![DeadlockAndIdempotency](screenshots/P3_DeadlockAndIdempotency.png)
+
+**IsolationAndWriteSkew**
+
+![IsolationAndWriteSkew](screenshots/P3_IsolationAndWriteSkew.png)
+
+**LostUpdateAndFixes**
+
+![LostUpdateAndFixes](screenshots/P3_LostUpdateAndFixes.png)
+
 ## How to run
 
 ```bash

@@ -110,6 +110,26 @@ The async standby was left following a dead primary. It has to be re-pointed (`p
 
 **Targets.** RPO = 0 for committed transfers (synchronous standby, proven in A5). RTO under about 60 s (automated failover; manual promotion took 3.2 s in A5). The disaster-recovery copy in a second region is asynchronous, so its RPO is seconds, which is accepted for a full-region outage.
 
+## Screenshots
+
+Terminal captures produced by [`scripts/capture_evidence.py`](../scripts/capture_evidence.py): each image is the real output of the command shown in its title bar (a live `psql` query against the lab database, or the command that prints a committed results file).
+
+**CitusSharding**
+
+![CitusSharding](screenshots/P5_CitusSharding.png)
+
+**LagOutageFailover**
+
+![LagOutageFailover](screenshots/P5_LagOutageFailover.png)
+
+**MongoReplicaSetElection**
+
+![MongoReplicaSetElection](screenshots/P5_MongoReplicaSetElection.png)
+
+**ReplicationSetup**
+
+![ReplicationSetup](screenshots/P5_ReplicationSetup.png)
+
 ## How to run
 
 ```bash

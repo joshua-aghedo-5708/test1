@@ -53,6 +53,30 @@ Full table: [`results/summary.md`](results/summary.md).
 
 **Index cost.** The 8 indexes add about 79 MB and took 5.7 s to build. Every index slows down `INSERT`s into its table, which is why `txn` and `ledger_entry` (the write-hot tables) use BRIN and partial indexes wherever possible, and only Q1's covering B-tree is "expensive".
 
+## Screenshots
+
+Terminal captures produced by [`scripts/capture_evidence.py`](../scripts/capture_evidence.py): each image is the real output of the command shown in its title bar (a live `psql` query against the lab database, or the command that prints a committed results file).
+
+**AfterIndex**
+
+![AfterIndex](screenshots/P2_AfterIndex.png)
+
+**BeforeIndex**
+
+![BeforeIndex](screenshots/P2_BeforeIndex.png)
+
+**IndexSizes**
+
+![IndexSizes](screenshots/P2_IndexSizes.png)
+
+**LiveIndexedStatement**
+
+![LiveIndexedStatement](screenshots/P2_LiveIndexedStatement.png)
+
+**Summary**
+
+![Summary](screenshots/P2_Summary.png)
+
 ## How to run
 
 ```bash
